@@ -37,7 +37,7 @@ function getImageInfo($file) {
 }
 
 // Get all files in the following folder
-$mediafiles = get_files('test', "*", TRUE, 'on_image_found');
+$mediafiles = get_files('images', "*", TRUE, 'on_image_found');
 print '<pre>' . print_r($mediafiles, TRUE) . '</pre>';
 
 function on_image_found($file) {
@@ -50,7 +50,7 @@ function on_image_found($file) {
     $fileTime = date('g.i.s A', $info['timestamp']);
 
     // Create the "result" directory
-    $result_dir = './_RESULTS--';
+    $result_dir = './_RESULTS';
     if (!is_dir($result_dir)) {
       mkdir($result_dir);
     }
