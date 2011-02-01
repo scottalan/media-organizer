@@ -26,7 +26,6 @@ function getImageInfo($file) {
     if (isset($exif['Model'])) {
       $camera_model = $exif['Model'];
     }
-    //echo "<pre>" . print_r($exif, TRUE) . "</pre>";
   }
   return array(
     'timestamp' => $timestamp,
@@ -38,7 +37,6 @@ function getImageInfo($file) {
 
 // Get all files in the following folder
 $mediafiles = get_files('images', "*", TRUE, 'on_image_found');
-print '<pre>' . print_r($mediafiles, TRUE) . '</pre>';
 
 function on_image_found($file) {
   $extension = get_file_ext($file);
@@ -71,23 +69,25 @@ function on_image_found($file) {
 
 
     // Create the Make & Model Directory
-    $camera = $info['camera_make'] . " " . $info['camera_model'];
-    $model_dir = isset($camera) ? $camera : 'Camera Unknown';
-    $model_dir = $month_dir . '/' . $model_dir;
-    if (!is_dir($model_dir)) {
-      mkdir($model_dir);
-    }
-
-    $to_file = $model_dir . '/' . basename($file);
-
-    // Create the 'other' directory in case the image is not from a camera. ie., just an image file
-
-    if (!$camera) {
-      $other_dir = ('other');
-      if (!is_dir($other_dir)) {
-        mkdir($other_dir);
+    $make = $info['camera_make'];
+    $model = $info['camera_model'];
+    $camera = '';
+    if (isset($make) || ($model)) {
+      if ($make == '') {
+        $make = '(make)' ;
       }
+      if ($model == '') {
+        $model = '(model)';
+      }
+      $camera = $make . " " . $model;
     }
+    $camera_dir = $camera;
+    $camera_dir = $month_dir . '/' . $camera_dir;
+    if (!is_dir($camera_dir)) {
+      mkdir($camera_dir);
+    }
+
+    $to_file = $camera_dir . '/' . basename($file);
 
     // We need to loop until we find a file that has not already
     // been taken, and add a _1, _2, _3, etc until we find that file.
@@ -114,7 +114,6 @@ function on_image_found($file) {
     if ($shouldCopy) {
       // Now copy the file.
       copy($file, $to_file);
-      //echo "<pre>" .print_r($file) . "</pre>";
     }
   }
 }
