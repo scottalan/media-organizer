@@ -1,6 +1,7 @@
 <?php
 
 include 'organizePHP/includes/myfunctions.inc';
+include 'organizePHP/includes/image_extensions.inc';
 
 function getImageInfo($file) {
   $exif = exif_read_data($file, 'EXIF');
@@ -36,11 +37,12 @@ function getImageInfo($file) {
 }
 
 // Get all files in the following folder
-$mediafiles = get_files('images', "*", TRUE, 'on_image_found');
+$mediafiles = get_files('media', "*", TRUE, 'on_media_found');
 
-function on_image_found($file) {
+function on_media_found($file) {
   $extension = get_file_ext($file);
-  if ($extension == 'jpg' || $extension == 'jpeg') {
+  if ($extension == 'jpg' || $extension == 'jpeg' || $extension == 'bmp') {
+
     // Get the timestamp.
     $info = getImageInfo($file);
 
@@ -74,7 +76,7 @@ function on_image_found($file) {
     $camera = '';
     if (isset($make) || ($model)) {
       if ($make == '') {
-        $make = '(make)' ;
+        $make = '(make)';
       }
       if ($model == '') {
         $model = '(model)';
@@ -87,25 +89,25 @@ function on_image_found($file) {
       mkdir($camera_dir);
     }
 
-    $to_file = $camera_dir . '/' . basename($file);
+    $save_file_to = strtolower($camera_dir . '/' . basename($file));
 
     // We need to loop until we find a file that has not already
     // been taken, and add a _1, _2, _3, etc until we find that file.
     $i = 1;
     $shouldCopy = TRUE;
-    $original_file = $to_file;
-    $ext = get_file_ext($to_file);
-    while (file_exists($to_file)) {
-      $to_info = getImageInfo($to_file);
-      if (($to_info['timestamp'] == $info['timestamp']) ||
-              ($to_info['fileSize'] == $info['fileSize'])) {
+    $original_file = $save_file_to;
+    $extension = get_file_ext($save_file_to);
+    while (file_exists($save_file_to)) {
+      $file_info = getImageInfo($save_file_to);
+      if (($file_info['timestamp'] == $info['timestamp']) ||
+              ($file_info['fileSize'] == $info['fileSize'])) {
         $shouldCopy = FALSE;
         break;
       } else {
         // Add a number at the end of this file.
-        $filename = basename($original_file, "." . $ext);
+        $filename = basename($original_file, "." . $extension);
         $filename .= '_' . $i;
-        $to_file = $model_dir . '/' . $filename . '.' . $ext;
+        $save_file_to = $model_dir . '/' . $filename . '.' . $extension;
         $i++;
       }
     }
@@ -113,8 +115,63 @@ function on_image_found($file) {
     // Only copy if we should copy.
     if ($shouldCopy) {
       // Now copy the file.
-      copy($file, $to_file);
+      copy($file, $save_file_to);
+      echo 'Copying Image (from) ' . '&nbsp' . '&nbsp ' . $file;
+      echo '<br />';
+      echo '<br />';
+      echo 'Copying Image (to)' . '&nbsp' . '&nbsp' . $save_file_to;
+      echo '<br />';
+      echo '<br />';
     }
   }
+
+  // Adding Movies------------
+
+  if ($extension == 'mov' || $extension == '3gp' || $extension == 'm4v' || $extension == 'mp4' || $extension == 'avi') {
+
+    // Create the "result" directory
+    $result_dir = './_RESULTS';
+    if (!is_dir($result_dir)) {
+      mkdir($result_dir);
+    }
+
+    // Create the movie directory
+    $mov_dir = 'MOVIES';
+    $mov_dir = $result_dir . '/' . $mov_dir;
+    if (!is_dir($mov_dir)) {
+      mkdir($mov_dir);
+    }
+
+    // Create the movie extension directory
+    $extension_dir = $mov_dir . '/' . $extension;
+    if (!is_dir($extension_dir)) {
+      mkdir($extension_dir);
+    }
+
+    $save_file_to = strtolower($extension_dir . '/' . basename($file));
+
+    // We need to loop until we find a file that has not already
+    // been taken, and add a _1, _2, _3, etc until we find that file.
+    $i = 1;
+    $original_file = $save_file_to;
+    while (file_exists($save_file_to)) {
+      // Add a number at the end of this file.
+      $filename = basename($original_file, "." . $extension);
+      $filename .= '_' . $i;
+      $save_file_to = $extension_dir . '/' . $filename . '.' . $extension;
+      $i++;
+    }
+
+    // Now copy the file.
+    copy($file, $save_file_to);
+    echo 'Copying Movie (from)' . '&nbsp' . '&nbsp' . $file;
+    echo '<br />';
+    echo '<br />';
+    echo 'Copying Movie (to)' . '&nbsp' . '&nbsp' . $save_file_to;
+    echo '<br />';
+    echo '<br />';
+  }
 }
+
+echo '--------- Complete! ---------';
 ?>
